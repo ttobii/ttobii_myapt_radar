@@ -26,7 +26,7 @@ def summarize(articles: list[Article]) -> str:
 
     if not articles:
         return (
-            f"🏢 *{config.APARTMENT_NAME} 재건축 레이더*\n"
+            f"🏢 {config.APARTMENT_NAME} 재건축 레이더\n"
             f"📅 {yesterday}\n\n"
             f"어제 새로운 재건축 관련 소식이 없었습니다."
         )
@@ -60,9 +60,13 @@ def summarize(articles: list[Article]) -> str:
         logger.error("Claude API 오류: %s", e)
         # API 실패 시 원본 기사 목록을 그대로 발송
         summary_body = _fallback_summary(articles)
+    except Exception as e:
+        # anthropic.APIError 외의 예외 (TypeError, 인증 오류 등) 처리
+        logger.error("Claude API 호출 중 예상치 못한 오류: %s", e)
+        summary_body = _fallback_summary(articles)
 
     header = (
-        f"🏢 *{config.APARTMENT_NAME} 재건축 레이더*\n"
+        f"🏢 {config.APARTMENT_NAME} 재건축 레이더\n"
         f"📅 {yesterday} 업데이트\n"
         f"{'─' * 20}\n\n"
     )

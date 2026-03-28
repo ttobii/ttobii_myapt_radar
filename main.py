@@ -68,8 +68,10 @@ def main() -> None:
     try:
         message = summarizer.summarize(all_articles)
     except Exception as e:
-        logger.exception("요약 생성 중 예외 발생")
-        telegram_bot.send_error_alert(f"요약 실패: {e}")
+        logger.exception("요약 생성 중 예외 발생: %s", e)
+        alert_sent = telegram_bot.send_error_alert(f"[요약 실패] {type(e).__name__}: {e}")
+        if not alert_sent:
+            logger.error("텔레그램 오류 알림 발송도 실패했습니다. 에러 내용: %s", e)
         sys.exit(1)
 
     # ── 3. 텔레그램 발송 ───────────────────────────────────────
@@ -79,6 +81,9 @@ def main() -> None:
         logger.info("=== 발송 완료 ===")
     else:
         logger.error("텔레그램 발송 실패")
+        alert_sent = telegram_bot.send_error_alert("[발송 실패] 요약 메시지 텔레그램 전송에 실패했습니다.")
+        if not alert_sent:
+            logger.error("텔레그램 오류 알림 발송도 실패했습니다.")
         sys.exit(1)
 
 

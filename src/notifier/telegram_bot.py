@@ -31,7 +31,8 @@ def send_message(text: str) -> bool:
     payload = {
         "chat_id": config.TELEGRAM_CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",      # 굵게(*), 기울임(_) 등 기본 마크다운 지원
+        # parse_mode 제거: 뉴스 제목 등에 포함된 &, *, _ 등 특수문자가
+        # Telegram의 Markdown→HTML 변환 과정에서 파싱 오류를 유발할 수 있음
         "disable_web_page_preview": False,  # 링크 미리보기 활성화
     }
 
@@ -52,16 +53,31 @@ def send_message(text: str) -> bool:
         return False
 
 
-def send_error_alert(error_msg: str) -> None:
+def send_error_alert(error_msg: str) -> bool:
     """
     실행 중 예외 발생 시 오류 내용을 텔레그램으로 알립니다.
-    (정상 발송 실패해도 로그만 남기고 조용히 처리)
+    Markdown 파싱 오류를 방지하기 위해 parse_mode 없이 plain text로 발송합니다.
+
+    Returns:
+        발송 성공 여부
     """
     text = (
-        f"⚠️ *apt-radar 오류 발생*\n\n"
-        f"`{error_msg[:500]}`"  # 너무 긴 오류 메시지 자르기
+        f"⚠️ apt-radar 오류 발생\n\n"
+        f"{error_msg[:500]}"  # 너무 긴 오류 메시지 자르기
     )
+    url = TELEGRAM_API_BASE.format(token=config.TELEGRAM_TOKEN, method="sendMessage")
+    payload = {
+        "chat_id": config.TELEGRAM_CHAT_ID,
+        "text": text,
+        # parse_mode 제거: 에러 메시지에 `, *, _ 등 특수문자가 포함될 수 있어
+        # Markdown 파싱 시 400 오류 발생 가능성이 있음
+        "disable_web_page_preview": True,
+    }
     try:
-        send_message(text)
+        resp = requests.post(url, json=payload, timeout=15)
+        resp.raise_for_status()
+        logger.info("오류 알림 텔레그램 발송 성공")
+        return True
     except Exception:
         logger.exception("오류 알림 발송도 실패했습니다.")
+        return False

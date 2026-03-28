@@ -1,0 +1,50 @@
+### ================================================================
+### apt-radar — 텔레그램 API 수동 테스트
+### 실행 전: http-client.env.json 에 실제 토큰/채팅ID 입력 필요
+### ================================================================
+
+
+### [1] 정상 요약 메시지 발송 테스트 (send_message)
+###     - parse_mode: Markdown 적용
+###     - summarizer.py 가 생성하는 헤더 포맷 그대로 사용
+POST https://api.telegram.org/bot{{TELEGRAM_TOKEN}}/sendMessage
+Content-Type: application/json
+
+{
+  "chat_id": "{{TELEGRAM_CHAT_ID}}",
+  "text": "🏢 은마아파트 재건축 레이더\n📅 2026-03-27 업데이트\n────────────────────\n\n✅ 테스트 메시지입니다. 정상 수신되면 send_message() 동작 확인 완료.",
+  "disable_web_page_preview": false
+}
+
+
+### ----------------------------------------------------------------
+
+
+### [2] 에러 알림 메시지 발송 테스트 (send_error_alert) — 수정 후
+###     - parse_mode 없음 (plain text)
+###     - 특수문자(백틱, 별표 등) 포함해도 400 오류가 나지 않는지 확인
+POST https://api.telegram.org/bot{{TELEGRAM_TOKEN}}/sendMessage
+Content-Type: application/json
+
+{
+  "chat_id": "{{TELEGRAM_CHAT_ID}}",
+  "text": "⚠️ apt-radar 오류 발생\n\n[요약 실패] TypeError: Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted",
+  "disable_web_page_preview": true
+}
+
+
+### ----------------------------------------------------------------
+
+
+### [3] 에러 알림 — 수정 전 방식 (재현용, 400 에러가 발생해야 정상)
+###     - parse_mode: Markdown + 백틱으로 감싼 에러 메시지
+###     - 에러 메시지 내부의 백틱이 Markdown 파싱을 깨뜨려 400 응답 확인용
+POST https://api.telegram.org/bot{{TELEGRAM_TOKEN}}/sendMessage
+Content-Type: application/json
+
+{
+  "chat_id": "{{TELEGRAM_CHAT_ID}}",
+  "text": "⚠️ *apt-radar 오류 발생*\n\n`Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted`",
+  "parse_mode": "Markdown",
+  "disable_web_page_preview": false
+}
