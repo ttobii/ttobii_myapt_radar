@@ -13,8 +13,7 @@ from src.crawler.naver_news import Article
 
 logger = logging.getLogger(__name__)
 
-# 텔레그램 메시지 최대 길이 (4096자)
-TELEGRAM_MAX_LEN = 4000
+# 분할 발송은 telegram_bot.py 에서 처리하므로 여기서는 길이 제한 없음
 
 
 def summarize(articles: list[Article]) -> str:
@@ -40,6 +39,7 @@ def summarize(articles: list[Article]) -> str:
 
 {articles_text}
 
+재건축에 대한 용어 정리 
 위 내용을 바탕으로 아래 형식에 맞게 한국어로 요약해 주세요:
 
 1. **핵심 요약**: 어제 가장 중요한 재건축 관련 업데이트를 2~4문장으로 간결하게 정리
@@ -47,7 +47,8 @@ def summarize(articles: list[Article]) -> str:
 3. **출처**: 각 기사 제목과 URL을 목록으로 나열
 
 재건축과 직접 관련 없는 내용은 제외하고, 실제 진행 상황(안전진단, 조합 설립, 심의 결과 등)에 집중해 주세요.
-텔레그램 메시지 형식으로 작성하되, 마크다운은 최소화하고 이모지를 적절히 활용해 주세요."""
+텔레그램 메시지 형식으로 작성하되, 마크다운은 최소화하고 이모지를 적절히 활용해 주세요.
+"""
 
     try:
         message = client.messages.create(
@@ -72,10 +73,6 @@ def summarize(articles: list[Article]) -> str:
     )
 
     full_message = header + summary_body
-
-    # 텔레그램 길이 제한 처리
-    if len(full_message) > TELEGRAM_MAX_LEN:
-        full_message = full_message[:TELEGRAM_MAX_LEN] + "\n\n... (내용 일부 생략)"
 
     return full_message
 
