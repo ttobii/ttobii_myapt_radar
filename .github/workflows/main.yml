@@ -2,7 +2,7 @@ name: 재건축 레이더 일일 체크
 
 on:
   schedule:
-    - cron: '0 0 * * 1-5'   # UTC 00:00 = KST 09:00, 월~금
+    - cron: '0 0 * * *'   # UTC 00:00 = KST 09:00, 매일
   workflow_dispatch:          # 수동 실행 (테스트용)
 
 jobs:
